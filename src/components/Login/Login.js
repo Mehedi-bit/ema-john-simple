@@ -3,7 +3,7 @@ import React, { useContext } from 'react';
 import { useState } from 'react';
 import { UserContext } from '../../App';
 import { useHistory, useLocation } from 'react-router';
-import { handleGoogleSignIn, handleSignOut, initializeLoginFramework } from './LoginManager';
+import { createUserWithEmailAndPassword, handleGoogleSignIn, handleSignOut, initializeLoginFramework, signInWithEmailAndPassword } from './LoginManager';
 
 function Login() {
   const [newUser, setNewUser] = useState(false);
@@ -29,9 +29,7 @@ function Login() {
   const googleSignIn = () => {
       handleGoogleSignIn()
       .then(res => {
-            setUser(res);
-            setLoggedInUser(res);
-            history.replace(from); 
+            handleResponse(res, true);
         })
   }
 
@@ -39,21 +37,36 @@ function Login() {
   const signOut = () => {
       handleSignOut()
       .then(res => {
-          setUser(res)
+          handleResponse(res, false);
       })
   }
 
   /// handle submit /// 
   const handleSubmit = (e) => {
     if (newUser && user.email && user.password) {
-      
+      createUserWithEmailAndPassword(user.name, user.email, user.password)
+      .then(res => {
+        handleResponse(res, true);
+      })
     }
 
     if (!newUser && user.email && user.password) {
-      
+      signInWithEmailAndPassword(user.email, user.password)
+      .then(res => {
+        handleResponse(res, true);
+      })
     }
     e.preventDefault();
   }
+
+  const handleResponse = (res, redirect) => {
+    setUser(res);
+    setLoggedInUser(res);
+    if (redirect) {
+      history.replace(from);
+    }
+  }
+
   /// handle input Blur ///
   const handleBlur = (e) => {
     let isFieldValid = true;
